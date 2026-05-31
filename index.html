@@ -242,6 +242,7 @@
             margin-bottom: 24px;
         }
         .maker-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .maker-entry-actions { display: flex; flex-direction: column; gap: 8px; }
         .maker-btn {
             width: 100%;
             min-height: 40px;
@@ -261,9 +262,41 @@
             transition: all 0.2s;
         }
         .maker-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
-        .maker-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .maker-btn:disabled { opacity: 0.20; cursor: not-allowed; }
         .maker-btn.primary { background: var(--text-primary); color: #fff; border-color: var(--text-primary); }
         .maker-btn.primary:hover:not(:disabled) { background: #000; color: #fff; border-color: #000; }
+        .maker-btn.gemini {
+            background: var(--text-primary);
+            color: #fff;
+            border-color: var(--text-primary);
+        }
+        .maker-btn.gemini:hover:not(:disabled) {
+            background: #000;
+            color: #fff;
+            border-color: #000;
+        }
+        .maker-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .maker-reset-link {
+            padding: 6px 0 6px 12px;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .maker-reset-link:hover { color: var(--primary); }
         .maker-preview {
             width: 160px;
             height: 160px;
@@ -320,7 +353,108 @@
             margin-bottom: 14px;
         }
         .maker-hint i { font-size: 16px; margin-top: 1px; }
+        .maker-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .maker-form .maker-btn { margin-top: 10px; }
+        .maker-input {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid var(--divider);
+            border-radius: var(--radius-md);
+            background: #fff;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+        }
+        .maker-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(61, 90, 254, 0.08);
+        }
+        .maker-check {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .maker-check input { accent-color: var(--primary); }
+        .maker-link-btn {
+            width: fit-content;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: var(--primary);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 400;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .maker-link-btn:hover { text-decoration: none; }
+        .maker-status {
+            min-height: 18px;
+            color: var(--text-tertiary);
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: center;
+            white-space: pre-line;
+        }
+        .maker-status.error { color: var(--error); font-weight: 400; }
+        .maker-status.success { color: var(--success); font-weight: 600; }
         .maker-value { color: var(--text-tertiary); font-size: 11px; font-weight: 500; float: right; }
+        .gemini-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+        .gemini-modal-card {
+            width: min(420px, 100%);
+            background: #fff;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+        }
+        .gemini-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .gemini-modal-title {
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .gemini-modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: var(--bg-panel);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gemini-modal-desc {
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.55;
+            margin-bottom: 14px;
+        }
         .toast {
             position: fixed;
             left: 50%;
@@ -550,66 +684,67 @@
             <div class="dropzone" id="dropzone">
                 <i class="material-icons">cloud_upload</i>
                 <p>클릭 또는 드래그하여 업로드</p>
-                <span>JPG, PNG (최대 300KB)</span>
+                <span id="file-format-desc">JPG, PNG (최대 300KB)</span>
                 <input type="file" id="file-input" accept="image/jpeg, image/png, image/jpg">
             </div>
         </div>
 
         <!-- 2. Gift Image Maker Section (Gift Only) -->
         <div id="gift-maker-section" class="maker-panel hidden">
-            <div class="section-title">규격 맞춤 이미지 만들기</div>
+            <div class="maker-panel-header">
+                <div class="section-title" style="margin-bottom: 0;">규격 맞춤 이미지 만들기</div>
+                <button class="maker-reset-link hidden" id="maker-reset-link" onclick="resetGiftMakerControls()">
+                    <i class="material-icons" style="font-size: 16px;">refresh</i>
+                    초기화
+                </button>
+            </div>
             <p class="section-desc" style="margin-bottom: 12px;">상품 이미지를 800×800px로 맞춰 만들어요.</p>
             
-            <div class="maker-hint">
-                <i class="material-icons">info</i>
-                <div>배경 제거 기능이 아니에요. 투명 또는 흰 배경 이미지를 올리고 상품 크기, 위치를 맞춰주세요.</div>
+            <div class="maker-entry-actions" id="maker-entry-actions">
+                <button class="maker-btn primary" id="maker-start-btn" onclick="openGiftMaker()" disabled>
+                    <i class="material-icons" style="font-size: 18px;">auto_fix_high</i>
+                    시작하기
+                </button>
             </div>
 
-            <button class="maker-btn primary" id="maker-start-btn" onclick="openGiftMaker()" disabled>
-                <i class="material-icons" style="font-size: 18px;">auto_fix_high</i>
-                이미지 만들기
-            </button>
-
             <div id="maker-controls" class="hidden" style="margin-top: 16px;">
-                <div class="maker-preview">
-                    <canvas id="maker-canvas" width="800" height="800"></canvas>
-                    <div class="maker-safe-overlay"></div>
-                    <div class="maker-center-guide-x"></div>
-                    <div class="maker-center-guide-y"></div>
-                </div>
-                <div class="maker-safe-caption">빨간 점선: 안전 영역</div>
+                <div id="maker-manual-controls">
+                    <div class="maker-preview">
+                        <canvas id="maker-canvas" width="800" height="800"></canvas>
+                        <div class="maker-safe-overlay"></div>
+                        <div class="maker-center-guide-x"></div>
+                        <div class="maker-center-guide-y"></div>
+                    </div>
+                    <div class="maker-safe-caption">빨간 점선: 안전 영역</div>
 
-                <div class="input-group">
-                    <label for="maker-scale">상품 크기 <span class="maker-value" id="maker-scale-value">100%</span></label>
-                    <input type="range" id="maker-scale" min="30" max="180" value="100" oninput="updateMakerFromControls()">
-                </div>
-                <div class="input-group">
-                    <label for="maker-offset-x">가로 위치 <span class="maker-value" id="maker-offset-x-value">0</span></label>
-                    <input type="range" id="maker-offset-x" min="-300" max="300" value="0" oninput="updateMakerFromControls()">
-                </div>
-                <div class="input-group">
-                    <label for="maker-offset-y">세로 위치 <span class="maker-value" id="maker-offset-y-value">0</span></label>
-                    <input type="range" id="maker-offset-y" min="-300" max="300" value="0" oninput="updateMakerFromControls()">
+                    <div class="input-group">
+                        <label for="maker-scale">상품 크기 <span class="maker-value" id="maker-scale-value">100%</span></label>
+                        <input type="range" id="maker-scale" min="30" max="180" value="100" oninput="updateMakerFromControls()">
+                    </div>
+                    <div class="input-group">
+                        <label for="maker-offset-x">가로 위치 <span class="maker-value" id="maker-offset-x-value">0</span></label>
+                        <input type="range" id="maker-offset-x" min="-300" max="300" value="0" oninput="updateMakerFromControls()">
+                    </div>
+                    <div class="input-group">
+                        <label for="maker-offset-y">세로 위치 <span class="maker-value" id="maker-offset-y-value">0</span></label>
+                        <input type="range" id="maker-offset-y" min="-300" max="300" value="0" oninput="updateMakerFromControls()">
+                    </div>
                 </div>
 
-                <div class="maker-actions">
-                    <button class="maker-btn" onclick="autoFitGiftImage()">
-                        <i class="material-icons" style="font-size: 17px;">center_focus_strong</i>
-                        자동 맞춤
-                    </button>
-                    <button class="maker-btn" onclick="resetGiftMakerControls()">
-                        <i class="material-icons" style="font-size: 17px;">refresh</i>
-                        초기화
-                    </button>
-                </div>
                 <div class="maker-actions">
                     <button class="maker-btn" onclick="applyMadeGiftImage()">
                         <i class="material-icons" style="font-size: 17px;">check_box</i>
                         검수하기
                     </button>
-                    <button class="maker-btn primary" onclick="downloadMadeGiftImage()">
+                    <button class="maker-btn" onclick="downloadMadeGiftImage()">
                         <i class="material-icons" style="font-size: 17px;">download</i>
                         PNG 다운로드
+                    </button>
+                </div>
+                <div class="maker-actions">
+                    <button class="maker-btn gemini" id="maker-ai-btn" onclick="openGeminiModal()">
+                        <i class="material-icons" style="font-size: 18px;">auto_awesome</i>
+                        AI로 만들기
                     </button>
                 </div>
             </div>
@@ -803,6 +938,24 @@
 
 <div id="toast" class="toast"></div>
 
+<div id="gemini-modal" class="gemini-modal-backdrop hidden" onclick="closeGeminiModal()">
+    <div class="gemini-modal-card" onclick="event.stopPropagation()">
+        <div class="gemini-modal-header">
+            <div class="gemini-modal-title">AI로 만들기</div>
+            <button class="gemini-modal-close" type="button" onclick="closeGeminiModal()" aria-label="닫기">
+                <i class="material-icons" style="font-size: 18px;">close</i>
+            </button>
+        </div>
+        <div class="gemini-modal-desc">AI로 정면 상품 컷을 자동으로 만들 수 있어요. 개인 API 키를 입력해주세요. AI로 만든 이미지는 상품 라벨, 로고 등 원본과 다를 수 있어요.</div>
+        <div class="maker-form">
+            <input class="maker-input" id="gemini-api-key" type="password" autocomplete="off" placeholder="Gemini API 키 입력" oninput="updateAiMakerButtonState()">
+            <a class="maker-link-btn" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Gemini API 키 발급받기 →</a>
+            <button class="maker-btn primary" id="ai-maker-btn" onclick="createAiGiftImage()" disabled>Gemini로 이미지 만들기</button>
+            <div class="maker-status" id="ai-maker-status"></div>
+        </div>
+    </div>
+</div>
+
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     // --- State Variables ---
     let currentType = 'banner'; // 'banner' or 'gift'
@@ -811,8 +964,69 @@
     let imgWidth = 0;
     let imgHeight = 0;
     let toastTimer = null;
+    let geminiApiKey = '';
     const GIFT_CANVAS_SIZE = 800;
     const GIFT_SAFE_SIZE = 700;
+    const GEMINI_IMAGE_MODEL = 'gemini-3-pro-image-preview';
+    const GEMINI_API_KEY_URL = 'https://aistudio.google.com/app/apikey';
+    const AI_GIFT_PROMPT = `첨부한 이미지를 올영매장 증정품 이미지 가이드에 맞는 온라인몰용 단일 상품컷으로 정리해 주세요.
+
+가장 중요한 최종 결과 조건:
+1. 최종 캔버스 전체 배경은 반드시 #FFFFFF 단색이어야 합니다.
+2. 배경에 밝은 회색, 오프화이트, 그라데이션, 질감, 바닥면, 벽면, 스튜디오 배경을 남기지 마세요.
+3. 상품 그림자, 바닥 그림자, 접지 그림자, 반사, 하이라이트 번짐을 모두 제거하세요.
+4. 결과 이미지는 상품 본체만 #FFFFFF 배경 위에 떠 있는 누끼형 상품컷이어야 합니다.
+5. 자연스러운 제품 사진처럼 보이게 만들기보다, 온라인몰 썸네일용 깔끔한 누끼 상품 이미지 규격을 우선하세요.
+
+상품 선택 및 정리 조건:
+1. 이미지 안에서 대표 상품 1개만 남겨 주세요.
+2. 여러 상품이 있는 경우 가장 크고 선명하게 보이는 상품 1개만 선택해 주세요.
+3. 선택한 상품 외의 모든 요소를 제거해 주세요.
+   - 다른 상품
+   - 원본 배경
+   - 바닥/벽/공간감
+   - 상품이 만든 모든 그림자
+   - 반사광과 바닥 반사
+   - 장식 요소
+   - 프로모션 문구
+   - 가격/할인 정보
+   - 배지
+   - 캐릭터
+   - 사람
+4. 상품 자체에 포함된 로고, 라벨, 패키지 문구, 색상, 형태, 질감은 원본과 최대한 동일하게 유지해 주세요.
+5. 상품 로고, 라벨, 패키지 문구를 임의로 수정하거나 새로 만들지 마세요.
+6. 원본에 없는 요소를 추가하지 마세요.
+7. 상품은 가능한 정면 상품 컷으로 정리해 주세요.
+8. 원본 상품의 형태와 비율은 최대한 유지해 주세요.
+9. 상품 전체가 잘리지 않도록 해 주세요.
+10. 상품 가장자리가 캔버스에 닿지 않도록 충분한 여백을 남겨 주세요.
+11. 최종 이미지는 1:1 정사각형 이미지로 만들어 주세요.
+12. 가능하다면 최종 이미지는 800×800px 크기로 만들어 주세요.
+13. 상품은 캔버스의 정중앙에 배치해 주세요.
+14. 상품이 중앙 안전 영역 안에 들어오도록 상하좌우 여백을 확보해 주세요.
+
+텍스트/라벨 처리 조건:
+1. 상품 라벨의 텍스트를 새로 쓰거나 선명하게 복원하지 마세요.
+2. 원본에서 이미 선명하게 보이는 큰 로고와 주요 그래픽만 유지하세요.
+3. 작거나 흐릿한 텍스트는 정확히 재현하려고 하지 말고 원본의 시각적 형태만 유지하세요.
+4. 한글/영문 문구를 추측해서 생성하지 마세요.
+5. 선택하지 않은 다른 상품의 텍스트, 향 이름, 옵션명, 캐릭터, 그래픽을 가져오지 마세요.
+6. 여러 상품의 텍스트 정보를 섞지 마세요.
+7. 상품 라벨의 누락된 부분을 다른 상품에서 가져와 보완하지 마세요.
+8. 로고와 라벨을 재디자인하지 마세요.
+
+금지:
+- #FFFFFF가 아닌 배경색 사용 금지
+- 회색 배경 사용 금지
+- 그림자 생성 금지
+- 바닥면 표현 금지
+- 제품이 바닥에 서 있는 듯한 접지감 표현 금지
+- 상품 외 요소를 결과 이미지에 남기는 것 금지
+- 선택하지 않은 상품의 라벨, 문구, 색상, 캐릭터, 그래픽 요소를 결과 상품에 반영하는 것 금지
+- 여러 상품의 텍스트나 디자인을 섞는 것 금지
+- 한글/영문 문구를 추측해서 새로 생성하는 것 금지
+- 상품을 새로 그리거나 재해석하는 것 금지
+- 상품 패키지 디자인, 로고, 텍스트, 색상을 변경하는 것 금지`;
     
     // Validation arrays
     let errors = [];
@@ -881,6 +1095,7 @@
     // --- Initialize ---
     document.addEventListener("DOMContentLoaded", () => {
         setupDragAndDrop();
+        updateUploadFormatGuide();
         resetUI();
     });
 
@@ -902,6 +1117,7 @@
         document.getElementById('upload-desc').innerText = currentType === 'banner' 
             ? "가로 690px, 세로 516px 규격의 이미지를 업로드해주세요." 
             : "가로 800px, 세로 800px 규격의 이미지를 업로드해주세요.";
+        updateUploadFormatGuide();
 
         // Toggle Left Panel Input Section
         if(type === 'gift-interest' || type === 'gift-sheet') {
@@ -930,8 +1146,27 @@
         document.getElementById('validation-block').classList.add('hidden');
         document.getElementById('final-check-block').classList.add('hidden');
         document.getElementById('maker-start-btn').disabled = true;
+        document.getElementById('ai-maker-btn').disabled = true;
+        document.getElementById('maker-start-btn').classList.remove('hidden');
         document.getElementById('maker-controls').classList.add('hidden');
+        document.getElementById('maker-reset-link').classList.add('hidden');
+        document.getElementById('maker-manual-controls').classList.remove('hidden');
+        setAiMakerStatus('');
         // inline style 제거 - CSS에 맡김
+    }
+
+    function isGiftTab(type = currentType) {
+        return type === 'gift-interest' || type === 'gift-sheet';
+    }
+
+    function updateUploadFormatGuide() {
+        if (isGiftTab()) {
+            fileInput.accept = 'image/jpeg, image/png, image/jpg, image/webp';
+            document.getElementById('file-format-desc').innerText = 'JPG, PNG, WEBP (최대 300KB)';
+        } else {
+            fileInput.accept = 'image/jpeg, image/png, image/jpg';
+            document.getElementById('file-format-desc').innerText = 'JPG, PNG (최대 300KB)';
+        }
     }
     
     // --- 탭 상태 저장 ---
@@ -968,7 +1203,7 @@
         
         // 입력값 복원
         document.getElementById('gift-title').value = state.titleInput || '';
-        restoreMakerControls(state.maker || { isOpen: false, scale: 100, offsetX: 0, offsetY: 0, dataUrl: null, sourceDataUrl: null });
+        restoreMakerControls(state.maker || createDefaultMakerState());
         
         // 체크박스 초기화 후 저장된 상태 복원
         const checkboxes = document.querySelectorAll('#manual-checkboxes input[type="checkbox"]');
@@ -1009,7 +1244,7 @@
         state.height = 0;
         state.titleInput = '';
         state.checkedItems = [];
-        state.maker = { isOpen: false, scale: 100, offsetX: 0, offsetY: 0, dataUrl: null, sourceDataUrl: null };
+        state.maker = createDefaultMakerState();
         
         // 전역 변수 초기화
         uploadedFile = null;
@@ -1046,12 +1281,157 @@
     }
 
     // --- Gift Image Maker ---
+    function createDefaultMakerState() {
+        return { isOpen: false, scale: 100, offsetX: 0, offsetY: 0, dataUrl: null, sourceDataUrl: null };
+    }
+
     function restoreMakerControls(makerState) {
         document.getElementById('maker-scale').value = makerState.scale || 100;
         document.getElementById('maker-offset-x').value = makerState.offsetX || 0;
         document.getElementById('maker-offset-y').value = makerState.offsetY || 0;
         document.getElementById('maker-controls').classList.toggle('hidden', !makerState.isOpen);
+        document.getElementById('maker-start-btn').classList.toggle('hidden', !!makerState.isOpen);
+        document.getElementById('maker-reset-link').classList.toggle('hidden', !makerState.isOpen);
+        document.getElementById('maker-manual-controls').classList.remove('hidden');
         updateMakerLabels();
+    }
+
+    function setAiMakerStatus(message, type = '') {
+        const status = document.getElementById('ai-maker-status');
+        status.innerText = message;
+        status.classList.toggle('error', type === 'error');
+        status.classList.toggle('success', type === 'success');
+    }
+
+    function updateAiMakerButtonState() {
+        const apiKey = document.getElementById('gemini-api-key').value.trim();
+        document.getElementById('ai-maker-btn').disabled = !apiKey;
+    }
+
+    function openGeminiModal() {
+        if (currentType !== 'gift-interest' && currentType !== 'gift-sheet') return;
+        if (!uploadedFile || !imgDataUrl) {
+            showToast('먼저 증정품 이미지를 업로드해 주세요.');
+            return;
+        }
+
+        const apiKeyInput = document.getElementById('gemini-api-key');
+        apiKeyInput.value = geminiApiKey;
+        document.getElementById('gemini-modal').classList.remove('hidden');
+        setAiMakerStatus('');
+        updateAiMakerButtonState();
+        apiKeyInput.focus();
+    }
+
+    function closeGeminiModal() {
+        document.getElementById('gemini-modal').classList.add('hidden');
+    }
+
+    async function createAiGiftImage() {
+        if (currentType !== 'gift-interest' && currentType !== 'gift-sheet') return;
+        if (!uploadedFile || !imgDataUrl) {
+            showToast('먼저 증정품 이미지를 업로드해 주세요.');
+            return;
+        }
+
+        const apiKey = document.getElementById('gemini-api-key').value.trim();
+        if (!apiKey) {
+            setAiMakerStatus('Gemini API 키를 입력해 주세요.', 'error');
+            return;
+        }
+        geminiApiKey = apiKey;
+
+        const aiButton = document.getElementById('ai-maker-btn');
+        aiButton.disabled = true;
+        aiButton.innerHTML = 'AI 생성 중';
+        setAiMakerStatus('AI가 상품 이미지를 정리하고 있어요.\n이미지에 따라 시간이 조금 걸릴 수 있어요.');
+
+        try {
+            const aiImageDataUrl = await callGeminiImageEdit(apiKey, imgDataUrl);
+            const maker = tabStates[currentType].maker;
+            maker.isOpen = true;
+            maker.sourceDataUrl = aiImageDataUrl;
+            maker.dataUrl = null;
+            document.getElementById('maker-manual-controls').classList.remove('hidden');
+            resetGiftMakerControls(true, aiImageDataUrl);
+            autoFitGiftImage();
+            setAiMakerStatus('');
+            closeGeminiModal();
+            showToast('AI 이미지가 생성됐어요. 상품 로고와 라벨 문구를 꼭 확인해 주세요.');
+        } catch (error) {
+            const message = 'API 키를 잘못 입력했어요. 다시 입력해주세요.';
+            setAiMakerStatus(message, 'error');
+            showToast(message);
+        } finally {
+            aiButton.disabled = false;
+            updateAiMakerButtonState();
+            aiButton.innerHTML = 'Gemini로 이미지 만들기';
+        }
+    }
+
+    async function callGeminiImageEdit(apiKey, sourceDataUrl) {
+        const imagePayload = getDataUrlPayload(sourceDataUrl);
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKey
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [
+                        { text: AI_GIFT_PROMPT },
+                        {
+                            inline_data: {
+                                mime_type: imagePayload.mimeType,
+                                data: imagePayload.base64
+                            }
+                        }
+                    ]
+                }],
+                generationConfig: {
+                    responseModalities: ['TEXT', 'IMAGE']
+                }
+            })
+        });
+
+        const result = await response.json().catch(() => null);
+        if (!response.ok) {
+            throw new Error('GEMINI_API_ERROR');
+        }
+
+        const imagePart = extractGeminiImagePart(result);
+        if (!imagePart || !imagePart.data) {
+            throw new Error('GEMINI_EMPTY_IMAGE');
+        }
+
+        return `data:${imagePart.mimeType || 'image/png'};base64,${imagePart.data}`;
+    }
+
+    function getDataUrlPayload(dataUrl) {
+        const match = dataUrl.match(/^data:(.+);base64,(.+)$/);
+        if (!match) {
+            throw new Error('이미지 데이터를 읽을 수 없어요. 다시 업로드해 주세요.');
+        }
+        return { mimeType: match[1], base64: match[2] };
+    }
+
+    function extractGeminiImagePart(result) {
+        const parts = result && result.candidates && result.candidates[0] && result.candidates[0].content
+            ? result.candidates[0].content.parts || []
+            : [];
+
+        for (const part of parts) {
+            const inlineData = part.inlineData || part.inline_data;
+            if (inlineData && inlineData.data) {
+                return {
+                    data: inlineData.data,
+                    mimeType: inlineData.mimeType || inlineData.mime_type || 'image/png'
+                };
+            }
+        }
+
+        return null;
     }
 
     function openGiftMaker() {
@@ -1062,6 +1442,10 @@
         }
 
         document.getElementById('maker-controls').classList.remove('hidden');
+        document.getElementById('maker-start-btn').classList.add('hidden');
+        document.getElementById('maker-reset-link').classList.remove('hidden');
+        document.getElementById('maker-manual-controls').classList.remove('hidden');
+        setAiMakerStatus('');
         tabStates[currentType].maker.isOpen = true;
         drawGiftMakerPreview();
     }
@@ -1105,6 +1489,10 @@
         document.getElementById('maker-offset-y').value = 0;
         if (!openControls) {
             document.getElementById('maker-controls').classList.add('hidden');
+            document.getElementById('maker-start-btn').classList.remove('hidden');
+            document.getElementById('maker-reset-link').classList.add('hidden');
+            document.getElementById('maker-manual-controls').classList.remove('hidden');
+            setAiMakerStatus('');
         }
         updateMakerLabels();
         if (openControls && (sourceDataUrl || imgDataUrl)) {
@@ -1241,10 +1629,27 @@
 
         const filename = `${currentType}-gift-800x800.png`;
 
+        try {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.rel = 'noopener';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            showToast('다운로드를 시작했어요.');
+            setTimeout(() => URL.revokeObjectURL(url), 3000);
+            return;
+        } catch (error) {
+            // 저장창 방식으로 한 번 더 시도합니다.
+        }
+
         if (window.showSaveFilePicker) {
             try {
                 const handle = await window.showSaveFilePicker({
                     suggestedName: filename,
+                    startIn: 'downloads',
                     types: [{
                         description: 'PNG image',
                         accept: { 'image/png': ['.png'] }
@@ -1260,24 +1665,11 @@
             }
         }
 
-        try {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            link.rel = 'noopener';
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            showToast('다운로드를 시작했어요.');
-            setTimeout(() => URL.revokeObjectURL(url), 3000);
-        } catch (error) {
-            const fallbackWindow = window.open(maker.dataUrl, '_blank', 'noopener');
-            if (fallbackWindow) {
-                showToast('새 탭에서 이미지를 열었어요. 이미지 저장을 이용해 주세요.');
-            } else {
-                showToast('브라우저가 다운로드를 막았어요. Chrome에서 다시 열어 주세요.');
-            }
+        const fallbackWindow = window.open(maker.dataUrl, '_blank', 'noopener');
+        if (fallbackWindow) {
+            showToast('새 탭에서 이미지를 열었어요. 이미지 저장을 이용해 주세요.');
+        } else {
+            showToast('브라우저가 다운로드를 막았어요. Chrome에서 다시 열어 주세요.');
         }
     }
 
@@ -1339,9 +1731,11 @@
 
     // --- File Handling ---
     function handleFile(file, options = {}) {
-        const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        const validTypes = isGiftTab()
+            ? ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
+            : ['image/jpeg', 'image/png', 'image/jpg'];
         if (!validTypes.includes(file.type)) {
-            alert('JPG, PNG 파일만 업로드 가능합니다.');
+            alert(isGiftTab() ? 'JPG, PNG, WEBP 파일만 업로드 가능합니다.' : 'JPG, PNG 파일만 업로드 가능합니다.');
             return;
         }
 
