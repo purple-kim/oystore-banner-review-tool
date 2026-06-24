@@ -217,6 +217,12 @@
             background: var(--bg-input); transition: all 0.2s;
         }
         .input-group input:focus { outline: none; border-color: var(--primary); background: var(--bg-panel); box-shadow: 0 0 0 3px rgba(61,90,254,0.1); }
+        .input-group input[type="range"] {
+            padding: 0;
+            height: 6px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
         .char-count { display: flex; justify-content: space-between; font-size: 11px; margin-top: 6px; }
         .count-success { color: var(--success); font-weight: bold; }
         .count-warning { color: var(--warning); font-weight: bold; }
@@ -226,6 +232,117 @@
             font-size: 12px; font-weight: 600; color: var(--error); background: #FEF2F2;
             padding: 10px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 6px;
         }
+
+        /* Gift Image Maker */
+        .maker-panel {
+            border: 1px solid var(--divider);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            background: var(--bg-input);
+            margin-bottom: 24px;
+        }
+        .maker-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .maker-btn {
+            width: 100%;
+            min-height: 40px;
+            padding: 10px 12px;
+            border: 1px solid var(--divider);
+            border-radius: var(--radius-md);
+            background: var(--bg-panel);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .maker-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+        .maker-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .maker-btn.primary { background: var(--text-primary); color: #fff; border-color: var(--text-primary); }
+        .maker-btn.primary:hover:not(:disabled) { background: #000; color: #fff; border-color: #000; }
+        .maker-preview {
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 16px;
+            background: #fff;
+            border: 1px solid var(--divider);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            position: relative;
+        }
+        .maker-preview canvas { width: 100%; height: 100%; display: block; }
+        .maker-safe-overlay {
+            position: absolute;
+            inset: 6.25%;
+            border: 1px dashed rgba(229, 58, 54, 0.8);
+            background: rgba(229, 58, 54, 0.08);
+            pointer-events: none;
+        }
+        .maker-center-guide-x,
+        .maker-center-guide-y {
+            position: absolute;
+            pointer-events: none;
+        }
+        .maker-center-guide-x {
+            left: 6.25%;
+            right: 6.25%;
+            top: 50%;
+            border-top: 1px dashed rgba(229, 58, 54, 0.8);
+        }
+        .maker-center-guide-y {
+            top: 6.25%;
+            bottom: 6.25%;
+            left: 50%;
+            border-left: 1px dashed rgba(229, 58, 54, 0.8);
+        }
+        .maker-safe-caption {
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: -8px;
+            margin-bottom: 14px;
+        }
+        .maker-hint {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            padding: 10px;
+            border-radius: var(--radius-md);
+            background: rgba(61, 90, 254, 0.08);
+            color: var(--primary);
+            font-size: 12px;
+            line-height: 1.45;
+            margin-bottom: 14px;
+        }
+        .maker-hint i { font-size: 16px; margin-top: 1px; }
+        .maker-value { color: var(--text-tertiary); font-size: 11px; font-weight: 500; float: right; }
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%) translateY(16px);
+            max-width: min(520px, calc(100vw - 32px));
+            background: var(--text-primary);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.5;
+            text-align: center;
+            white-space: pre-line;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s;
+            z-index: 2000;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
         /* =========================================
            Right Panel (Preview / Canvas)
@@ -438,7 +555,67 @@
             </div>
         </div>
 
-        <!-- 2. Text Input Section (Gift Only) -->
+        <!-- 2. Gift Image Maker Section (Gift Only) -->
+        <div id="gift-maker-section" class="maker-panel hidden">
+            <div class="section-title">규격 맞춤 이미지 만들기</div>
+            <p class="section-desc" style="margin-bottom: 12px;">상품 이미지를 800×800px로 맞춰 만들어요.</p>
+            
+            <div class="maker-hint">
+                <i class="material-icons">info</i>
+                <div>배경 제거 기능이 아니에요. 투명 또는 흰 배경 이미지를 올리고 상품 크기, 위치를 맞춰주세요.</div>
+            </div>
+
+            <button class="maker-btn primary" id="maker-start-btn" onclick="openGiftMaker()" disabled>
+                <i class="material-icons" style="font-size: 18px;">auto_fix_high</i>
+                이미지 만들기
+            </button>
+
+            <div id="maker-controls" class="hidden" style="margin-top: 16px;">
+                <div class="maker-preview">
+                    <canvas id="maker-canvas" width="800" height="800"></canvas>
+                    <div class="maker-safe-overlay"></div>
+                    <div class="maker-center-guide-x"></div>
+                    <div class="maker-center-guide-y"></div>
+                </div>
+                <div class="maker-safe-caption">빨간 점선: 안전 영역</div>
+
+                <div class="input-group">
+                    <label for="maker-scale">상품 크기 <span class="maker-value" id="maker-scale-value">100%</span></label>
+                    <input type="range" id="maker-scale" min="30" max="180" value="100" oninput="updateMakerFromControls()">
+                </div>
+                <div class="input-group">
+                    <label for="maker-offset-x">가로 위치 <span class="maker-value" id="maker-offset-x-value">0</span></label>
+                    <input type="range" id="maker-offset-x" min="-300" max="300" value="0" oninput="updateMakerFromControls()">
+                </div>
+                <div class="input-group">
+                    <label for="maker-offset-y">세로 위치 <span class="maker-value" id="maker-offset-y-value">0</span></label>
+                    <input type="range" id="maker-offset-y" min="-300" max="300" value="0" oninput="updateMakerFromControls()">
+                </div>
+
+                <div class="maker-actions">
+                    <button class="maker-btn" onclick="autoFitGiftImage()">
+                        <i class="material-icons" style="font-size: 17px;">center_focus_strong</i>
+                        자동 맞춤
+                    </button>
+                    <button class="maker-btn" onclick="resetGiftMakerControls()">
+                        <i class="material-icons" style="font-size: 17px;">refresh</i>
+                        초기화
+                    </button>
+                </div>
+                <div class="maker-actions">
+                    <button class="maker-btn" onclick="applyMadeGiftImage()">
+                        <i class="material-icons" style="font-size: 17px;">check_box</i>
+                        검수하기
+                    </button>
+                    <button class="maker-btn primary" onclick="downloadMadeGiftImage()">
+                        <i class="material-icons" style="font-size: 17px;">download</i>
+                        PNG 다운로드
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Text Input Section (Gift Only) -->
         <div id="text-input-section" class="hidden">
             <div class="section-title">증정품 타이틀 입력</div>
             <p class="section-desc">모바일에서 증정품 타이틀이 어떻게 보일지 확인해주세요.</p>
@@ -624,6 +801,8 @@
 
 </div>
 
+<div id="toast" class="toast"></div>
+
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     // --- State Variables ---
     let currentType = 'banner'; // 'banner' or 'gift'
@@ -631,6 +810,9 @@
     let imgDataUrl = null;
     let imgWidth = 0;
     let imgHeight = 0;
+    let toastTimer = null;
+    const GIFT_CANVAS_SIZE = 800;
+    const GIFT_SAFE_SIZE = 700;
     
     // Validation arrays
     let errors = [];
@@ -644,7 +826,8 @@
             width: 0,
             height: 0,
             titleInput: '',
-            checkedItems: []
+            checkedItems: [],
+            maker: { isOpen: false, scale: 100, offsetX: 0, offsetY: 0, dataUrl: null, sourceDataUrl: null }
         },
         'gift-interest': {
             file: null,
@@ -652,7 +835,8 @@
             width: 0,
             height: 0,
             titleInput: '',
-            checkedItems: []
+            checkedItems: [],
+            maker: { isOpen: false, scale: 100, offsetX: 0, offsetY: 0, dataUrl: null, sourceDataUrl: null }
         },
         'gift-sheet': {
             file: null,
@@ -660,7 +844,8 @@
             width: 0,
             height: 0,
             titleInput: '',
-            checkedItems: []
+            checkedItems: [],
+            maker: { isOpen: false, scale: 100, offsetX: 0, offsetY: 0, dataUrl: null, sourceDataUrl: null }
         }
     };
 
@@ -676,12 +861,14 @@
         'gift-interest': [
             '배경색이 흰색(#FFFFFF)으로 제대로 적용되었나요?',
             '이미지 배경에 패턴, 컬러 등 다른 요소를 노출하지 않았나요?',
+            '여러 상품이 아닌 단일 상품 이미지를 업로드했나요?',
             '상품이 안전 영역 표시 내에 위치하나요?(상단 안전영역 토글 확인)',
             '증정품 타이틀에는 상품명만 적용한게 맞나요?'
         ],
         'gift-sheet': [
             '배경색이 흰색(#FFFFFF)으로 제대로 적용되었나요?',
             '이미지 배경에 패턴, 컬러 등 다른 요소를 노출하지 않았나요?',
+            '여러 상품이 아닌 단일 상품 이미지를 업로드했나요?',
             '상품이 안전 영역 표시 내에 위치하나요?(상단 안전영역 토글 확인)',
             '증정품 타이틀에는 상품명만 적용한게 맞나요?'
         ]
@@ -719,9 +906,11 @@
         // Toggle Left Panel Input Section
         if(type === 'gift-interest' || type === 'gift-sheet') {
             document.getElementById('text-input-section').classList.remove('hidden');
+            document.getElementById('gift-maker-section').classList.remove('hidden');
             document.getElementById('guide-toggle-container').style.display = 'flex';
         } else {
             document.getElementById('text-input-section').classList.add('hidden');
+            document.getElementById('gift-maker-section').classList.add('hidden');
             document.getElementById('guide-toggle-container').style.display = 'none';
             document.getElementById('guide-toggle-checkbox').checked = false;
             document.getElementById('promo-guide-overlay').style.display = 'none';
@@ -740,6 +929,8 @@
         document.getElementById('result-content').classList.add('hidden');
         document.getElementById('validation-block').classList.add('hidden');
         document.getElementById('final-check-block').classList.add('hidden');
+        document.getElementById('maker-start-btn').disabled = true;
+        document.getElementById('maker-controls').classList.add('hidden');
         // inline style 제거 - CSS에 맡김
     }
     
@@ -751,6 +942,14 @@
         state.width = imgWidth;
         state.height = imgHeight;
         state.titleInput = document.getElementById('gift-title').value;
+        state.maker = {
+            isOpen: !document.getElementById('maker-controls').classList.contains('hidden'),
+            scale: Number(document.getElementById('maker-scale').value),
+            offsetX: Number(document.getElementById('maker-offset-x').value),
+            offsetY: Number(document.getElementById('maker-offset-y').value),
+            dataUrl: state.maker ? state.maker.dataUrl : null,
+            sourceDataUrl: state.maker ? state.maker.sourceDataUrl : null
+        };
         
         // 체크박스 상태 저장
         const checkboxes = document.querySelectorAll('#manual-checkboxes input[type="checkbox"]');
@@ -769,6 +968,7 @@
         
         // 입력값 복원
         document.getElementById('gift-title').value = state.titleInput || '';
+        restoreMakerControls(state.maker || { isOpen: false, scale: 100, offsetX: 0, offsetY: 0, dataUrl: null, sourceDataUrl: null });
         
         // 체크박스 초기화 후 저장된 상태 복원
         const checkboxes = document.querySelectorAll('#manual-checkboxes input[type="checkbox"]');
@@ -785,8 +985,12 @@
             
             // 초기화 버튼 활성화
             document.getElementById('reset-tab-btn').disabled = false;
+            document.getElementById('maker-start-btn').disabled = !(tabType === 'gift-interest' || tabType === 'gift-sheet');
             
             runValidation();
+            if ((tabType === 'gift-interest' || tabType === 'gift-sheet') && state.maker && state.maker.isOpen) {
+                drawGiftMakerPreview();
+            }
         } else {
             resetUI();
             
@@ -805,6 +1009,7 @@
         state.height = 0;
         state.titleInput = '';
         state.checkedItems = [];
+        state.maker = { isOpen: false, scale: 100, offsetX: 0, offsetY: 0, dataUrl: null, sourceDataUrl: null };
         
         // 전역 변수 초기화
         uploadedFile = null;
@@ -816,6 +1021,7 @@
         fileInput.value = "";
         document.getElementById('gift-title').value = "";
         document.querySelectorAll('#manual-checkboxes input[type="checkbox"]').forEach(cb => cb.checked = false);
+        restoreMakerControls(state.maker);
         
         // UI 초기화
         resetUI();
@@ -837,6 +1043,276 @@
             promoGuide.style.display = 'none';
             interestGuide.style.display = 'none';
         }
+    }
+
+    // --- Gift Image Maker ---
+    function restoreMakerControls(makerState) {
+        document.getElementById('maker-scale').value = makerState.scale || 100;
+        document.getElementById('maker-offset-x').value = makerState.offsetX || 0;
+        document.getElementById('maker-offset-y').value = makerState.offsetY || 0;
+        document.getElementById('maker-controls').classList.toggle('hidden', !makerState.isOpen);
+        updateMakerLabels();
+    }
+
+    function openGiftMaker() {
+        if (currentType !== 'gift-interest' && currentType !== 'gift-sheet') return;
+        if (!uploadedFile || !imgDataUrl) {
+            showToast('먼저 증정품 이미지를 업로드해 주세요.');
+            return;
+        }
+
+        document.getElementById('maker-controls').classList.remove('hidden');
+        tabStates[currentType].maker.isOpen = true;
+        drawGiftMakerPreview();
+    }
+
+    function updateMakerFromControls() {
+        if (currentType !== 'gift-interest' && currentType !== 'gift-sheet') return;
+        const maker = tabStates[currentType].maker;
+        maker.isOpen = true;
+        maker.scale = Number(document.getElementById('maker-scale').value);
+        maker.offsetX = Number(document.getElementById('maker-offset-x').value);
+        maker.offsetY = Number(document.getElementById('maker-offset-y').value);
+        updateMakerLabels();
+        drawGiftMakerPreview();
+    }
+
+    function updateMakerLabels() {
+        document.getElementById('maker-scale-value').innerText = `${document.getElementById('maker-scale').value}%`;
+        document.getElementById('maker-offset-x-value').innerText = document.getElementById('maker-offset-x').value;
+        document.getElementById('maker-offset-y-value').innerText = document.getElementById('maker-offset-y').value;
+    }
+
+    function autoFitGiftImage() {
+        document.getElementById('maker-scale').value = 100;
+        document.getElementById('maker-offset-x').value = 0;
+        document.getElementById('maker-offset-y').value = 0;
+        updateMakerFromControls();
+    }
+
+    function resetGiftMakerControls(openControls = true, sourceDataUrl = null) {
+        const maker = tabStates[currentType] && tabStates[currentType].maker;
+        if (maker) {
+            maker.isOpen = openControls && !document.getElementById('maker-controls').classList.contains('hidden');
+            maker.scale = 100;
+            maker.offsetX = 0;
+            maker.offsetY = 0;
+            maker.dataUrl = null;
+            maker.sourceDataUrl = sourceDataUrl || maker.sourceDataUrl || imgDataUrl;
+        }
+        document.getElementById('maker-scale').value = 100;
+        document.getElementById('maker-offset-x').value = 0;
+        document.getElementById('maker-offset-y').value = 0;
+        if (!openControls) {
+            document.getElementById('maker-controls').classList.add('hidden');
+        }
+        updateMakerLabels();
+        if (openControls && (sourceDataUrl || imgDataUrl)) {
+            drawGiftMakerPreview();
+        }
+    }
+
+    function drawGiftMakerPreview() {
+        if (!imgDataUrl) return;
+        const canvas = document.getElementById('maker-canvas');
+        const ctx = canvas.getContext('2d');
+        const maker = tabStates[currentType].maker;
+        const makerSourceDataUrl = maker.sourceDataUrl || imgDataUrl;
+        const img = new Image();
+        
+        img.onload = () => {
+            ctx.clearRect(0, 0, GIFT_CANVAS_SIZE, GIFT_CANVAS_SIZE);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, GIFT_CANVAS_SIZE, GIFT_CANVAS_SIZE);
+            
+            const contentBounds = getImageContentBounds(img);
+            const contentWidth = contentBounds.width || img.width;
+            const contentHeight = contentBounds.height || img.height;
+            const contentCenterX = contentBounds.x + contentWidth / 2;
+            const contentCenterY = contentBounds.y + contentHeight / 2;
+            const containScale = Math.min(GIFT_SAFE_SIZE / contentWidth, GIFT_SAFE_SIZE / contentHeight);
+            const userScale = (maker.scale || 100) / 100;
+            const drawScale = containScale * userScale;
+            const drawWidth = img.width * drawScale;
+            const drawHeight = img.height * drawScale;
+            const drawX = GIFT_CANVAS_SIZE / 2 - contentCenterX * drawScale + (maker.offsetX || 0);
+            const drawY = GIFT_CANVAS_SIZE / 2 - contentCenterY * drawScale + (maker.offsetY || 0);
+            
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+            
+            maker.dataUrl = canvas.toDataURL('image/png');
+            updateGiftPreviewImages(maker.dataUrl);
+        };
+        img.src = makerSourceDataUrl;
+    }
+
+    function getImageContentBounds(img) {
+        const sampleCanvas = document.createElement('canvas');
+        const sampleCtx = sampleCanvas.getContext('2d');
+        sampleCanvas.width = img.width;
+        sampleCanvas.height = img.height;
+        sampleCtx.drawImage(img, 0, 0);
+
+        const data = sampleCtx.getImageData(0, 0, img.width, img.height).data;
+        const estimatedBackground = getEstimatedBackgroundColor(data, img.width, img.height);
+        let minX = img.width;
+        let minY = img.height;
+        let maxX = -1;
+        let maxY = -1;
+
+        for (let y = 0; y < img.height; y++) {
+            for (let x = 0; x < img.width; x++) {
+                const idx = (y * img.width + x) * 4;
+                const pixel = [data[idx], data[idx + 1], data[idx + 2], data[idx + 3]];
+                if (!isLikelyMakerBackground(pixel, estimatedBackground)) {
+                    minX = Math.min(minX, x);
+                    minY = Math.min(minY, y);
+                    maxX = Math.max(maxX, x);
+                    maxY = Math.max(maxY, y);
+                }
+            }
+        }
+
+        if (maxX < minX || maxY < minY) {
+            return { x: 0, y: 0, width: img.width, height: img.height };
+        }
+
+        return {
+            x: minX,
+            y: minY,
+            width: maxX - minX + 1,
+            height: maxY - minY + 1
+        };
+    }
+
+    function getEstimatedBackgroundColor(data, width, height) {
+        const inset = Math.min(5, Math.floor(Math.min(width, height) / 20));
+        const points = [
+            { x: inset, y: inset },
+            { x: width - 1 - inset, y: inset },
+            { x: inset, y: height - 1 - inset },
+            { x: width - 1 - inset, y: height - 1 - inset }
+        ];
+        const opaquePixels = points
+            .map(point => {
+                const idx = (point.y * width + point.x) * 4;
+                return [data[idx], data[idx + 1], data[idx + 2], data[idx + 3]];
+            })
+            .filter(pixel => !isTransparent(pixel));
+
+        if (opaquePixels.length === 0) return null;
+
+        return opaquePixels.reduce((acc, pixel) => {
+            acc[0] += pixel[0] / opaquePixels.length;
+            acc[1] += pixel[1] / opaquePixels.length;
+            acc[2] += pixel[2] / opaquePixels.length;
+            return acc;
+        }, [0, 0, 0]);
+    }
+
+    function isLikelyMakerBackground(pixel, estimatedBackground) {
+        if (isTransparent(pixel) || isNearWhite(pixel)) return true;
+        return estimatedBackground && colorDistance(pixel, estimatedBackground) < 45;
+    }
+
+    function updateGiftPreviewImages(dataUrl) {
+        if (!dataUrl) return;
+        if (currentType === 'gift-interest') {
+            document.getElementById('interest-image-preview').src = dataUrl;
+        } else if (currentType === 'gift-sheet') {
+            document.getElementById('sim-image-preview').src = dataUrl;
+        }
+    }
+
+    async function downloadMadeGiftImage() {
+        const maker = tabStates[currentType].maker;
+        if (!maker || !maker.dataUrl) {
+            showToast('먼저 규격 맞춤 이미지를 만들어 주세요.');
+            return;
+        }
+        const canvas = document.getElementById('maker-canvas');
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        if (!blob) {
+            showToast('이미지를 다운로드할 수 없어요. 다시 시도해 주세요.');
+            return;
+        }
+
+        const filename = `${currentType}-gift-800x800.png`;
+
+        if (window.showSaveFilePicker) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: filename,
+                    types: [{
+                        description: 'PNG image',
+                        accept: { 'image/png': ['.png'] }
+                    }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                showToast('PNG 이미지를 저장했어요.');
+                return;
+            } catch (error) {
+                if (error && error.name === 'AbortError') return;
+            }
+        }
+
+        try {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.rel = 'noopener';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            showToast('다운로드를 시작했어요.');
+            setTimeout(() => URL.revokeObjectURL(url), 3000);
+        } catch (error) {
+            const fallbackWindow = window.open(maker.dataUrl, '_blank', 'noopener');
+            if (fallbackWindow) {
+                showToast('새 탭에서 이미지를 열었어요. 이미지 저장을 이용해 주세요.');
+            } else {
+                showToast('브라우저가 다운로드를 막았어요. Chrome에서 다시 열어 주세요.');
+            }
+        }
+    }
+
+    function applyMadeGiftImage() {
+        const maker = tabStates[currentType].maker;
+        if (!maker || !maker.dataUrl) {
+            showToast('먼저 규격 맞춤 이미지를 만들어 주세요.');
+            return;
+        }
+        dataUrlToFile(maker.dataUrl, `${currentType}-gift-800x800.png`).then(file => {
+            const makerSnapshot = {
+                isOpen: true,
+                scale: maker.scale,
+                offsetX: maker.offsetX,
+                offsetY: maker.offsetY,
+                dataUrl: maker.dataUrl,
+                sourceDataUrl: maker.sourceDataUrl || imgDataUrl
+            };
+            showToast('자동 검수 적용했어요.');
+            handleFile(file, { preserveMaker: makerSnapshot });
+        });
+    }
+
+    function dataUrlToFile(dataUrl, filename) {
+        return fetch(dataUrl)
+            .then(res => res.blob())
+            .then(blob => new File([blob], filename, { type: 'image/png' }));
+    }
+
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.innerText = message;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
     }
 
     // --- Drag and Drop Setup ---
@@ -862,7 +1338,7 @@
     }
 
     // --- File Handling ---
-    function handleFile(file) {
+    function handleFile(file, options = {}) {
         const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
         if (!validTypes.includes(file.type)) {
             alert('JPG, PNG 파일만 업로드 가능합니다.');
@@ -888,11 +1364,23 @@
                 
                 // 초기화 버튼 활성화
                 document.getElementById('reset-tab-btn').disabled = false;
+                document.getElementById('maker-start-btn').disabled = !(currentType === 'gift-interest' || currentType === 'gift-sheet');
+                if (currentType === 'gift-interest' || currentType === 'gift-sheet') {
+                    if (options.preserveMaker) {
+                        tabStates[currentType].maker = options.preserveMaker;
+                        restoreMakerControls(options.preserveMaker);
+                    } else {
+                        resetGiftMakerControls(false, imgDataUrl);
+                    }
+                }
                 
                 // 체크리스트 업데이트
                 updateManualChecklist(currentType);
                 
                 runValidation();
+                if (options.preserveMaker) {
+                    drawGiftMakerPreview();
+                }
             };
             img.src = imgDataUrl;
         };
@@ -992,11 +1480,12 @@
                 // 배경색 자동 검증 (관심매장만)
                 checkBackgroundColor(uploadedFile).then(isWhite => {
                     if (isWhite) {
-                        addResultItem(true, "배경색", "흰색 배경 확인 완료 (#FFFFFF)");
+                        addResultItem(true, "배경색", "투명 배경 또는 흰색 배경 확인 완료");
                     } else {
-                        addResultItem(false, "배경색", "이미지 배경이 흰색(#FFFFFF)이 아니에요. 배경색을 수정해 주세요.", false);
-                        errors.push("이미지 배경이 흰색(#FFFFFF)이 아니에요. 배경색을 수정해 주세요.");
+                        addResultItem(false, "배경색", "배경이 있는 이미지로 보여요. 상품만 남긴 투명 PNG 또는 흰 배경 이미지를 업로드해 주세요.", false);
+                        errors.push("배경이 있는 이미지로 보여요. 상품만 남긴 투명 PNG 또는 흰 배경 이미지를 업로드해 주세요.");
                     }
+                    checkGiftImageQuality(uploadedFile).then(addGiftQualityWarnings);
                     updateFinalStatus();
                 });
             } else {
@@ -1016,11 +1505,12 @@
                 // 배경색 자동 검증 (프로모션)
                 checkBackgroundColor(uploadedFile).then(isWhite => {
                     if (isWhite) {
-                        addResultItem(true, "배경색", "흰색 배경 확인 완료 (#FFFFFF)");
+                        addResultItem(true, "배경색", "투명 배경 또는 흰색 배경 확인 완료");
                     } else {
-                        addResultItem(false, "배경색", "이미지 배경이 흰색(#FFFFFF)이 아니에요. 배경색을 수정해 주세요.", false);
-                        errors.push("이미지 배경이 흰색(#FFFFFF)이 아니에요. 배경색을 수정해 주세요.");
+                        addResultItem(false, "배경색", "배경이 있는 이미지로 보여요. 상품만 남긴 투명 PNG 또는 흰 배경 이미지를 업로드해 주세요.", false);
+                        errors.push("배경이 있는 이미지로 보여요. 상품만 남긴 투명 PNG 또는 흰 배경 이미지를 업로드해 주세요.");
                     }
+                    checkGiftImageQuality(uploadedFile).then(addGiftQualityWarnings);
                     updateFinalStatus();
                 });
             }
@@ -1132,7 +1622,7 @@
         }
     }
 
-    // --- Background Color Validation (관심매장 전용) ---
+    // --- Background Color Validation (증정품: 투명 또는 흰 배경 허용) ---
     function checkBackgroundColor(imageFile) {
         return new Promise((resolve) => {
             const img = new Image();
@@ -1144,19 +1634,10 @@
                 canvas.height = img.height;
                 ctx.drawImage(img, 0, 0);
                 
-                // 5px 안쪽 지점 샘플링 (좌상, 우상, 좌하, 우하)
-                const inset = 5; // 안쪽 여백
-                const corners = [
-                    ctx.getImageData(inset, inset, 1, 1).data,                          // 좌상 (5, 5)
-                    ctx.getImageData(img.width - inset, inset, 1, 1).data,              // 우상 (width-5, 5)
-                    ctx.getImageData(inset, img.height - inset, 1, 1).data,             // 좌하 (5, height-5)
-                    ctx.getImageData(img.width - inset, img.height - inset, 1, 1).data  // 우하 (width-5, height-5)
-                ];
-                
-                // 정확히 흰색(255,255,255)인지 확인 (허용 오차 없음)
-                const isWhite = corners.every(pixel => 
-                    pixel[0] === 255 && pixel[1] === 255 && pixel[2] === 255
-                );
+                const points = getEdgeSamplePoints(img.width, img.height, 16);
+                const samples = points.map(point => ctx.getImageData(point.x, point.y, 1, 1).data);
+                const cleanBackgroundCount = samples.filter(pixel => isTransparent(pixel) || isNearWhite(pixel)).length;
+                const isWhite = cleanBackgroundCount / samples.length >= 0.92;
                 
                 resolve(isWhite);
             };
@@ -1167,6 +1648,80 @@
             
             img.src = URL.createObjectURL(imageFile);
         });
+    }
+
+    function checkGiftImageQuality(imageFile) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                const edgePoints = getEdgeSamplePoints(img.width, img.height, 24);
+                const edgeSamples = edgePoints.map(point => ctx.getImageData(point.x, point.y, 1, 1).data);
+                const objectEdgeCount = edgeSamples.filter(pixel => !isTransparent(pixel) && !isNearWhite(pixel)).length;
+                const edgeContactRatio = objectEdgeCount / edgeSamples.length;
+                
+                resolve({
+                    hasEdgeContact: edgeContactRatio > 0.18,
+                    edgeContactRatio
+                });
+            };
+            
+            img.onerror = function() {
+                resolve({ hasEdgeContact: false, edgeContactRatio: 0 });
+            };
+            
+            img.src = URL.createObjectURL(imageFile);
+        });
+    }
+
+    function addGiftQualityWarnings(quality) {
+        if (quality.hasEdgeContact) {
+            const message = '이미지 가장자리에 상품 또는 배경 요소가 감지됐어요.\n여백이 있는 투명 또는 흰 배경 이미지를 권장해요.';
+            addResultItem(false, '여백/잘림 가능성', message, true);
+            if (!warnings.includes(message)) warnings.push(message);
+            showToast(message);
+        }
+        updateFinalStatus();
+    }
+
+    function getEdgeSamplePoints(width, height, countPerEdge) {
+        const points = [];
+        const maxX = width - 1;
+        const maxY = height - 1;
+        const inset = Math.min(5, Math.floor(Math.min(width, height) / 20));
+        
+        for (let i = 0; i < countPerEdge; i++) {
+            const ratio = countPerEdge === 1 ? 0 : i / (countPerEdge - 1);
+            const x = Math.round(inset + (maxX - inset * 2) * ratio);
+            const y = Math.round(inset + (maxY - inset * 2) * ratio);
+            points.push({ x, y: inset });
+            points.push({ x, y: maxY - inset });
+            points.push({ x: inset, y });
+            points.push({ x: maxX - inset, y });
+        }
+        return points;
+    }
+
+    function isTransparent(pixel) {
+        return pixel[3] <= 12;
+    }
+
+    function isNearWhite(pixel) {
+        return pixel[0] >= 245 && pixel[1] >= 245 && pixel[2] >= 245;
+    }
+
+    function colorDistance(pixel, color) {
+        return Math.sqrt(
+            Math.pow(pixel[0] - color[0], 2) +
+            Math.pow(pixel[1] - color[1], 2) +
+            Math.pow(pixel[2] - color[2], 2)
+        );
     }
 
     // --- Background Color Validation (배너 전용: 한 곳이라도 흰색이면 에러) ---
