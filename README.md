@@ -4,7 +4,7 @@
 올영매장의 배너 이미지를 검수하기 위한 가이드 웹 도구입니다.
 
 ## 🔗 바로 사용하기
-👉 **[배너 검수 도구 열기](https://borakim30-oy.github.io/oystore-banner-review-tool/)**
+👉 **[배너 검수 도구 열기](https://oy-borakim90.github.io/oystore-banner-review-tool/)**
 
 
 ## 📌 주요 기능
